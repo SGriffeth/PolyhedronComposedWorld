@@ -532,7 +532,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: 3988b99422f090141bcb7ef8948e67e0, type: 2}
-  radius: 30
+  chunkLength: 10
+  renderDistance: 10
   chunkLoader: {fileID: 737943401}
   mask:
     serializedVersion: 2

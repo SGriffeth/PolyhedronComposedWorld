@@ -119,58 +119,6 @@ namespace ChunkManaging
         public static List<Vector2> GeneratedPoints = new List<Vector2>();
         public static List<Vector2> GeneratedChunks = new List<Vector2>();
         public static Dictionary<Mesh,bool> Empty = new Dictionary<Mesh, bool>();
-        //public static List<Vector2> VisistedPlaces = new List<Vector2>();
-        /*public static List<CubeComposedCircle> GeneratedChunks = new List<CubeComposedCircle>();
-        public static Dictionary<GameObject,CubeComposedCircle> ChunkArea = new Dictionary<GameObject,CubeComposedCircle>();
-        public static List<Vector3> overlaps = new List<Vector3>();*/
-
-        /*public static Mesh GetMesher(CubeComposedCircle circle) {
-            Mesh mesh = new Mesh();
-
-            float xSeparation = circle.xSeparation;
-            float zSeparation = circle.zSeparation;
-
-            float radius = circle.radius;
-            Vector3[] coords = new Vector3[ ChunkGenerator.RoundUp(Math.PI * Math.Pow(radius,2)) ];
-            Debug.Log("area " + coords.Length);
-            int[] triangles = new int[coords.Length * 6];
-            //Debug.Log(coords.Length + " length");
-            int i = 0;
-            int tri = 0;
-            for(float z = circle.Z - radius;z <= circle.Z + radius;z++){
-                for(float x = circle.X - radius;x <= circle.X + radius;x++){
-                    //Debug.Log(x + "," + z);
-                    if(circle.ContainsPoint(x,z,true) && circle.ContainsPoint(x+1,z,true) && circle.ContainsPoint(x,z+1,true) && circle.ContainsPoint(x+1,z+1,true)) {
-                        //Debug.Log("i " + i);
-                        //Debug.Log(x + "," + z);
-                        triangles[tri] = i;
-                        triangles[tri+1] = i + 2 * RoundUp(radius) + 1;
-                        triangles[tri+2] = i + 1;
-
-                        triangles[tri+3] = i + 1;
-                        triangles[tri+4] = i + 2 * RoundUp(radius) + 1;
-                        triangles[tri+5] = i + 2 * RoundUp(radius) + 2;
-
-                        Debug.Log(tri + " : " + triangles[tri]);
-                        Debug.Log((tri+1) + " : " + triangles[tri+1]);
-                        Debug.Log((tri+2) + " : " + triangles[tri+2]);
-                        
-                        Debug.Log((tri+3) + " : " + triangles[tri+3]);
-                        Debug.Log((tri+4) + " : " + triangles[tri+4]);
-                        Debug.Log((tri+5) + " : " + triangles[tri+5]);
-
-                        coords[i] = new Vector3(x * xSeparation,0/*Mathf.PerlinNoise(x * .3f,z * .3f) * 3*//*,z * zSeparation);
-                        i++;
-                        tri += 6;
-                    }
-                }
-            }
-
-            mesh.vertices = coords;
-            mesh.triangles = triangles;
-            mesh.RecalculateNormals();
-            return mesh;
-        }*/
 
         public static Mesh GetCircle(CubeComposedCircle circle,LayerMask mask) {
             Mesh mesh = new Mesh();
@@ -242,33 +190,28 @@ namespace ChunkManaging
             return mesh;
         }
 
-        public static Mesh GetSquare(Vector2 start,Vector2 end,LayerMask mask) {
+        public static Mesh GetSquare(Vector2 start,Vector2 end,LayerMask mask,bool checkOverlap = false) {
             int xVertices = RoundUp(end.x) - RoundUp(start.x) + 1;
             int zVertices = RoundUp(end.y) - RoundUp(start.y) + 1;
 
             Vector3[] vertices = new Vector3[xVertices * zVertices];
             int[] triangles = new int[(xVertices-1) * (zVertices-1) * 6];
-            /*Debug.Log("leng " + triangles.Length);
-            Debug.Log(xVertices + "," + zVertices + " width&depth");
-            Debug.Log(start.x + "," + start.y + " , " + end.x + "," + end.y);*/
             
             int i = 0;
             int tri = 0;
             bool isEmpty = true;
             for(float z = start.y, zPos = 0;z <= end.y;z++) {
                 for(float x = start.x, xPos = 0;x <= end.x;x++) {
-                    //Debug.Log(xPos + "," + zPos);
                     float y = Mathf.PerlinNoise(x * .3f, z * .3f) * 3;
                     vertices[i] = new Vector3(xPos, y, zPos);
-                    if (GeneratedPoints.Contains(new Vector2(x, z))) {
+                    if (GeneratedPoints.Contains(new Vector2(x, z)) && checkOverlap) {
                         //Debug.Log(x + "," + z);
                         xPos++;
                         i++;
                         continue;
                     }
-                    if(xPos >= xVertices-1 || zPos >= zVertices-1) {/*Debug.Log(xPos + "," + zPos);*/xPos++;i++;continue;}
+                    if(xPos >= xVertices-1 || zPos >= zVertices-1) {xPos++;i++;continue;}
 
-                    //Debug.Log(tri + " tri");
                     triangles[tri] = i;
                     triangles[tri + 1] = i + xVertices;
                     triangles[tri + 2] = i + 1;
@@ -280,7 +223,7 @@ namespace ChunkManaging
                     tri += 6;
                     i++;
                     xPos++;
-
+                    if(checkOverlap)
                     GeneratedPoints.Add(new Vector2(x, z));
                 }
                 zPos++;
@@ -457,6 +400,7 @@ namespace ChunkManaging
         }
 
         public static int RoundDown(float x) {
+            //x = 1.5
             int result = (int) x;
             if(result > x) result--;
             return result;

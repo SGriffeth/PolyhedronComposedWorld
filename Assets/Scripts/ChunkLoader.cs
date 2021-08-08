@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using ChunkManaging;
 
@@ -11,61 +12,30 @@ public class ChunkLoader : MonoBehaviour
     public static Vector2 end;
     public float xNoise = start.x;
     public float zNoise = start.y;*/
-    public float radius = 3;
+    public int chunkLength = 1;
+    public float renderDistance = 3;
     public Transform chunkLoader;
     public LayerMask mask;
+    public static List<Vector2> generatedChunks = new List<Vector2>();
     /*public Material material;
     private Vector3[][] gizmos = new Vector3[ (ChunkGenerator.RoundUp(end.x) - ChunkGenerator.RoundUp(start.x)) * (ChunkGenerator.RoundUp(end.x) - ChunkGenerator.RoundUp(start.x)) ][];*/
 
     // Start is called before the first frame update
     void Start()
     {
-        GameObject tetrahedron = new GameObject("Tetrahedron",typeof(MeshFilter),typeof(MeshRenderer));
-        tetrahedron.GetComponent<MeshFilter>().mesh = ChunkGenerator.GetTetrahedron(new Vector3(0,0,0),new Vector3(0,0,1),new Vector3(1,0,0),new Vector3(0,-1,0));
-        tetrahedron.GetComponent<MeshRenderer>().material = material;
-        /*CubeComposedCircle cubeComposed = new CubeComposedCircle(20,20,radius);
-        
-        Mesh mesh =
-        ChunkGenerator.GetCircle(cubeComposed);
-        GameObject gameObject = new GameObject("irk",typeof(MeshFilter),typeof(MeshRenderer),typeof(MeshCollider));
-        gameObject.GetComponent<MeshFilter>().mesh = mesh;
-        gameObject.GetComponent<MeshRenderer>().material = material;
-        gameObject.GetComponent<MeshCollider>().sharedMesh = mesh;
-        gameObject.layer = ChunkGenerator.GroundLayer;*/
-        /*Vector2 start = new Vector2(0,0);
-        Vector2 end = new Vector2(6,6);*/
-        /*Vector3[] vertices = ChunkGenerator.GetVertices(start,end,xNoise,zNoise);
-        int i = 0;
-        for (float z = start.y; z <= end.y; z++)
-        {
-            for (float x = start.x; x <= end.x; x++)
-            {
-                //Debug.Log("i : " + i + ", " + x + "," + z);
-                vertices[i] = new Vector3(x, Mathf.PerlinNoise(xNoise * .3f, zNoise * .3f) * 3f, z);
-                i++;
-                xNoise++;
-            }
-            zNoise++;
-        }*/
-        /*
-        string name = "part_"/*"p(X" + start.x + "Z" + start.y + ")(X" + end.x + "Z" + end.y + ")"*/;
-        /*SpawnChunk2(new GameObject("CubicalChunk"),name,material,start,end,xNoise,zNoise,true);
-        */
-        /*CubeComposedCircle cubeComposed = new CubeComposedCircle(start.x,start.y,radius);
-        cubeComposed.xSeparation = 5;
-        cubeComposed.zSeparation = 5;
-        Vector2[] points = cubeComposed.GetPoints();
-        */
+        //LoadChunks();
     }
 
     private void Update()
     {
-        int x = (int)chunkLoader.transform.position.x;
-        int z = (int)chunkLoader.transform.position.z;
+        LoadChunks();
+        //int x = (int)chunkLoader.transform.position.x;
+        //int z = (int)chunkLoader.transform.position.z;
         //if(!ChunkGenerator.VisistedPlaces.Contains(new Vector2(x,z))) {
         /*CubeComposedCircle cubeComposed = new CubeComposedCircle(x, z, radius);
         CreateChunk(cubeComposed);*/
-        CreateChunkSquare(new Vector2(x-radius/2,z-radius/2),new Vector2(x+radius/2,z+radius/2));
+        //CreateChunkSquare(new Vector2(x-chunkLength/2,z-chunkLength/2),new Vector2(x+chunkLength/2,z+chunkLength/2));
+        //LoadChunks();
             /*
             GameObject gameObject = new GameObject(x + "," + z,typeof(MeshFilter),typeof(MeshRenderer),typeof(MeshCollider));
             Mesh mesh = ChunkGenerator.GetCircle(cubeComposed);
@@ -81,10 +51,71 @@ public class ChunkLoader : MonoBehaviour
         }*/
     }
 
-    private void OnDrawGizmosSelected() {
-        foreach(Vector2 generated in ChunkGenerator.GeneratedPoints) {
-            Gizmos.DrawSphere(new Vector3(generated.x,0,generated.y),.2f);;
+    void LoadChunks() {
+        int chunkX = NearestMultiple(chunkLoader.position.x,chunkLength);
+        int chunkZ = NearestMultiple(chunkLoader.position.z,chunkLength);
+        for (int z = chunkZ - (int)(renderDistance/2 * chunkLength); z < chunkZ + (int)(renderDistance/2 * chunkLength); z += chunkLength)
+        {
+            for (int x = chunkX - (int)(renderDistance/2 * chunkLength); x < chunkX + (int)(renderDistance/2 * chunkLength); x += chunkLength)
+            {
+                if(generatedChunks.Contains(new Vector2(x,z))) continue;
+                CreateChunkSquare(new Vector2(x,z),new Vector2(x+chunkLength,z+chunkLength));
+                generatedChunks.Add(new Vector2(x,z));
+            }
         }
+    }
+    
+    private void OnDrawGizmosSelected() {
+        /*foreach(Vector2 generated in ChunkGenerator.GeneratedPoints) {
+            Gizmos.DrawSphere(new Vector3(generated.x,0,generated.y),.2f);;
+        }*/
+        foreach(Vector2 generated in generatedChunks) {
+            Gizmos.DrawSphere(new Vector3(generated.x,0,generated.y),.2f);
+        }
+    }
+
+    public static int NearestMultiple(int x, int multiple)
+        {
+            int rem = x % multiple;
+            if (rem > multiple / 2) return x + multiple - rem;
+            return x - rem;
+        }
+
+        public static int NearestMultiple(double x, int multiple)
+        {
+            int aprox = Convert.ToInt32(x);
+            int rem = aprox % multiple;
+            if (rem > multiple / 2) return aprox + multiple - rem;
+            return aprox - rem;
+        }
+
+        public static int NearestMultiple(float x, int multiple)
+        {
+            // 3
+            int aprox = Convert.ToInt32(x);
+            // 3 % 2
+            int rem = aprox % multiple;
+            // 1 >= 2/2
+            if (rem > multiple / 2) return aprox + multiple - rem; // 3 + 2 - 1
+            return aprox - rem;
+        }
+
+    GameObject SpawnChunk2(GameObject parent,string childName,Material material,Vector2 start,Vector2 end,float xNoise,float zNoise,bool cubical = false) {
+        Mesh mesh = ChunkGenerator.GetMesh(start,end,xNoise,zNoise);
+
+        if(cubical) {
+            ChunkGenerator.GetCubes(mesh.vertices,start,end,parent,childName);
+            return parent;
+        }
+
+        Chunk2 chunk = new Chunk2(start,end);
+        GameObject child = new GameObject(childName,typeof(MeshFilter),typeof(MeshRenderer),typeof(MeshCollider));
+        child.layer = ChunkGenerator.GroundLayer;
+        child.GetComponent<MeshFilter>().mesh = mesh;
+        child.GetComponent<MeshRenderer>().material = material;
+        child.GetComponent<MeshCollider>().sharedMesh = mesh;
+        child.transform.parent = parent.transform;
+        return parent;
     }
 
     GameObject CreateChunk(CubeComposedCircle circle) {
@@ -126,61 +157,5 @@ public class ChunkLoader : MonoBehaviour
 
         return gameObject;
     }
-
-    //private void Update() {
-        
-        /*mesh.vertices = vertices;
-        mesh.triangles = ChunkGenerator.GetTriangles(new Vector2(cubeComposed.X - radius,cubeComposed.Z - radius),new Vector2(cubeComposed.X + radius,cubeComposed.Z + radius),vertices);
-        mesh.RecalculateNormals();
-        GameObject gameObject = new GameObject("",typeof(MeshFilter),typeof(MeshRenderer),typeof(MeshCollider));
-        gameObject.GetComponent<MeshFilter>().mesh = mesh;
-        gameObject.GetComponent<MeshCollider>().sharedMesh = mesh;
-        gameObject.GetComponent<MeshRenderer>().material = material;*/
-    //}
-
-    GameObject SpawnChunk2(GameObject parent,string childName,Material material,Vector2 start,Vector2 end,float xNoise,float zNoise,bool cubical = false) {
-        Mesh mesh = ChunkGenerator.GetMesh(start,end,xNoise,zNoise);
-
-        if(cubical) {
-            ChunkGenerator.GetCubes(mesh.vertices,start,end,parent,childName);
-            return parent;
-        }
-
-        Chunk2 chunk = new Chunk2(start,end);
-        GameObject child = new GameObject(childName,typeof(MeshFilter),typeof(MeshRenderer),typeof(MeshCollider));
-        child.layer = ChunkGenerator.GroundLayer;
-        child.GetComponent<MeshFilter>().mesh = mesh;
-        child.GetComponent<MeshRenderer>().material = material;
-        child.GetComponent<MeshCollider>().sharedMesh = mesh;
-        child.transform.parent = parent.transform;
-        return parent;
-    }
-
-    /*private void OnDrawGizmosSelected() {
-        CubeComposedCircle cubeComposed = new CubeComposedCircle(start.x,start.y,radius);
-        Vector2[] points = cubeComposed.GetPoints();
-        for(int i = 0;i < points.Length;i++) {
-            Vector3 point = new Vector3(points[i].x,0,points[i].y);
-            Debug.Log(i + " " + point.x + "," + point.y);
-            Gizmos.DrawSphere(point,.2f);
-        }
-    }*/
-
-    /*private void OnDrawGizmosSelected() {
-        CubeComposedCircle cubeComposed = new CubeComposedCircle(chunkLoader.position.x,chunkLoader.position.z,radius);
-        Vector3[] points = ChunkGenerator.GetMesher(cubeComposed);
-        for(int i = 0;i < points.Length;i++) {
-            Vector3 point = new Vector3(points[i].x,0,points[i].z);
-            Debug.Log(i + " " + point.x + "," + point.y);
-            Gizmos.DrawSphere(point,.2f);
-        }
-    }*/
-
-    /*private void OnDrawGizmosSelected() {
-        foreach(Vector3 overlap in ChunkGenerator.overlaps) {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(overlap,.3f);
-        }
-    }*/
 
 }
