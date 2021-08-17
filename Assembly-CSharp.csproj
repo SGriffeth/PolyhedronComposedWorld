@@ -40,6 +40,7 @@
      <Compile Include="Assets\Scripts\ChunkManaging.cs" />
      <Compile Include="Assets\Scripts\PlayerMover.cs" />
      <Compile Include="Assets\Scripts\ChunkLoader.cs" />
+     <Compile Include="Assets\Scripts\FastNoiseLite.cs" />
      <None Include="Assets\Scripts\ChunkGenerator.txt" />
     <Reference Include="UnityEngine">
         <HintPath>C:/Program Files/Unity/2020.3.7f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
