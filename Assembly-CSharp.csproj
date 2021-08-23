@@ -37,11 +37,10 @@
   </PropertyGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\PlayerRotation.cs" />
-     <Compile Include="Assets\Scripts\ChunkManaging.cs" />
      <Compile Include="Assets\Scripts\PlayerMover.cs" />
-     <Compile Include="Assets\Scripts\ChunkLoader.cs" />
      <Compile Include="Assets\Scripts\FastNoiseLite.cs" />
-     <None Include="Assets\Scripts\ChunkGenerator.txt" />
+     <Compile Include="Assets\Scripts\MeshGenerator.cs" />
+     <Compile Include="Assets\Scripts\MeshLoader.cs" />
     <Reference Include="UnityEngine">
         <HintPath>C:/Program Files/Unity/2020.3.7f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>
